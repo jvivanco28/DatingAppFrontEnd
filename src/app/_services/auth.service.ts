@@ -4,14 +4,17 @@ import "rxjs/add/operator/map";
 import "rxjs/add/operator/catch";
 import "rxjs/add/observable/throw";
 import {Observable} from "rxjs/Observable";
+import {JwtHelper, tokenNotExpired} from "angular2-jwt";
 
 @Injectable()
 export class AuthService {
 
   private readonly BASE_URL = 'http://localhost:5000/api/auth/';
-  private readonly STORAGE_KEY_TOKEN = "token";
+  private readonly STORAGE_KEY_TOKEN = 'token';
 
-  private _userToken: any;
+  userToken: any;
+  decodedToken: any;
+  jwtHelper: JwtHelper = new JwtHelper();
 
   constructor(private http: Http) {
   }
@@ -23,14 +26,20 @@ export class AuthService {
 
       if (user) {
         localStorage.setItem(this.STORAGE_KEY_TOKEN, user.tokenString);
-        this._userToken = user.tokenString;
+
+        this.decodedToken = this.jwtHelper.decodeToken(user.tokenString);
+        console.log(this.decodedToken);
+
+        this.userToken = user.tokenString;
       }
     }).catch(this.handleError);
   }
 
   isLoggedIn() {
-    const token = localStorage.getItem(this.STORAGE_KEY_TOKEN);
-    return !!token;
+    // const token = localStorage.getItem(this.STORAGE_KEY_TOKEN);
+    // return !!token;
+
+    return tokenNotExpired(this.STORAGE_KEY_TOKEN);
   }
 
   register(model: any) {
@@ -39,7 +48,7 @@ export class AuthService {
   }
 
   logout() {
-    this._userToken = null;
+    this.userToken = null;
     localStorage.removeItem(this.STORAGE_KEY_TOKEN);
   }
 
@@ -51,7 +60,7 @@ export class AuthService {
   private handleError(error: any) {
     // Check for application error/unhandled error on server (internal server error).
     const applicationError = error.headers.get('Application-Error');
-    if ( applicationError ) {
+    if (applicationError) {
       return Observable.throw(applicationError);
     }
     // Check for model state errors.
@@ -59,8 +68,8 @@ export class AuthService {
     let modelStateErrors = '';
 
     if (serverError) {
-      for (const key in serverError ) {
-        if ( serverError[key]) {
+      for (const key in serverError) {
+        if (serverError[key]) {
           modelStateErrors += serverError[key] + '\n';
         }
       }
