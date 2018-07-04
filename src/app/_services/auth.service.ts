@@ -3,8 +3,8 @@ import {Headers, Http, RequestOptions, Response} from "@angular/http";
 import "rxjs/add/operator/map";
 import "rxjs/add/operator/catch";
 import "rxjs/add/observable/throw";
-import {Observable} from "rxjs/Observable";
 import {JwtHelper, tokenNotExpired} from "angular2-jwt";
+import {handleError} from "../_rest/rest_utils";
 
 @Injectable()
 export class AuthService {
@@ -32,7 +32,7 @@ export class AuthService {
 
         this.userToken = user.tokenString;
       }
-    }).catch(this.handleError);
+    }).catch(handleError);
   }
 
   isLoggedIn() {
@@ -44,7 +44,7 @@ export class AuthService {
 
   register(model: any) {
     return this.http.post(this.BASE_URL + 'register', model, this.getRequestOptions())
-      .catch(this.handleError);
+      .catch(handleError);
   }
 
   logout() {
@@ -55,27 +55,5 @@ export class AuthService {
   private getRequestOptions() {
     const headers = new Headers({'Content-type': 'application/json'});
     return new RequestOptions({headers: headers});
-  }
-
-  private handleError(error: any) {
-    // Check for application error/unhandled error on server (internal server error).
-    const applicationError = error.headers.get('Application-Error');
-    if (applicationError) {
-      return Observable.throw(applicationError);
-    }
-    // Check for model state errors.
-    const serverError = error.json();
-    let modelStateErrors = '';
-
-    if (serverError) {
-      for (const key in serverError) {
-        if (serverError[key]) {
-          modelStateErrors += serverError[key] + '\n';
-        }
-      }
-    }
-    return Observable.throw(
-      modelStateErrors || 'Server error'
-    );
   }
 }
