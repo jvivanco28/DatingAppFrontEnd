@@ -11,13 +11,18 @@ import {Router} from "@angular/router";
 export class NavComponent implements OnInit {
 
   model: any = {};
+  photoUrl: string;
 
-  constructor(private authService: AuthService,
+  constructor(protected authService: AuthService,
               private alertify: AlertifyService,
               private router: Router) {
   }
 
   ngOnInit() {
+    // Observe the user's primary photo url in cases where it gets changed.
+    this.authService.currentPhotoUrl.subscribe(
+      photoUrl => this.photoUrl = photoUrl
+    );
   }
 
   login() {
@@ -37,6 +42,7 @@ export class NavComponent implements OnInit {
 
   logout() {
     this.authService.logout();
+
     this.alertify.message('logged in successfully');
     this.router.navigate(['/home']);
   }

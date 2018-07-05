@@ -24,7 +24,6 @@ export class AlertifyService {
   }
 
   error(message: string) {
-    console.log('poopz');
     alertify.error(message);
   }
 

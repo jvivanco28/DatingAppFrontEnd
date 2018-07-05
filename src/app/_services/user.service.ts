@@ -30,4 +30,13 @@ export class UserService {
       .map(response => <User>response.json())
       .catch(handleError);
   }
+
+  setMainPhoto(userId: number, id: number) {
+    return this.authHttp.post(this.baseUrl + 'users/' + userId + ' /photos/' + id + '/setMain', {})
+      .catch(handleError);
+  }
+
+  deletePhoto(userId: number, id: number) {
+    return this.authHttp.delete(this.baseUrl + 'users/' + userId + ' /photos/' + id).catch(handleError);
+  }
 }

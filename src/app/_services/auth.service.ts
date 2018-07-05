@@ -5,18 +5,29 @@ import "rxjs/add/operator/catch";
 import "rxjs/add/observable/throw";
 import {JwtHelper, tokenNotExpired} from "angular2-jwt";
 import {handleError} from "../_rest/rest_utils";
+import {User} from "../_models/User";
+import {BehaviorSubject} from "rxjs";
 
 @Injectable()
 export class AuthService {
 
   private readonly BASE_URL = 'http://localhost:5000/api/auth/';
   private readonly STORAGE_KEY_TOKEN = 'token';
+  private readonly STORAGE_KEY_USER = 'user';
 
   userToken: any;
   decodedToken: any;
+  currentUser: User;
   jwtHelper: JwtHelper = new JwtHelper();
 
+  private photoUrl = new BehaviorSubject<string>('../../assets/user.png');
+  currentPhotoUrl = this.photoUrl.asObservable();
+
   constructor(private http: Http) {
+  }
+
+  changeMemberPhoto(photoUrl: string) {
+    this.photoUrl.next(photoUrl);
   }
 
   login(model: any) {
@@ -26,11 +37,15 @@ export class AuthService {
 
       if (user) {
         localStorage.setItem(this.STORAGE_KEY_TOKEN, user.tokenString);
+        localStorage.setItem(this.STORAGE_KEY_USER, JSON.stringify(user.user));
 
+        this.currentUser = user.user;
         this.decodedToken = this.jwtHelper.decodeToken(user.tokenString);
         console.log(this.decodedToken);
 
         this.userToken = user.tokenString;
+
+        this.changeMemberPhoto(this.currentUser.photoUrl)
       }
     }).catch(handleError);
   }
@@ -49,7 +64,10 @@ export class AuthService {
 
   logout() {
     this.userToken = null;
+    this.currentUser = null;
+
     localStorage.removeItem(this.STORAGE_KEY_TOKEN);
+    localStorage.removeItem(this.STORAGE_KEY_USER);
   }
 
   private getRequestOptions() {
